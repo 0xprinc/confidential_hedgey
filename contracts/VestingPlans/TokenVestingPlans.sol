@@ -9,6 +9,7 @@ import "../libraries/TransferHelper.sol";
 import "../libraries/TimelockLibrary.sol";
 import "../sharedContracts/URIAdmin.sol";
 import "../sharedContracts/VestingStorage.sol";
+import "fhevm/lib/TFHE.sol";
 
 /// @title TokenVestingPlans - An efficient way to allocate tokens to employees that vest over time
 /// @notice This contract allows people to grant tokens to beneficiaries that vest over time with the added functionalities;
@@ -252,13 +253,13 @@ contract TokenVestingPlans is ERC721Delegate, VestingStorage, ReentrancyGuard, U
     /// very useful for snapshot voting, and other view functionalities
     /// @param holder is the address of the beneficiary who owns the vesting plan(s)
     /// @param token is the ERC20 address of the token that is stored across the vesting plans
-    function lockedBalances(address holder, address token) external view returns (uint256 lockedBalance) {
+    function lockedBalances(address holder, address token) external view returns (euint64 lockedBalance) {
         uint256 holdersBalance = balanceOf(holder);
         for (uint256 i; i < holdersBalance; i++) {
             uint256 planId = tokenOfOwnerByIndex(holder, i);
             Plan memory plan = plans[planId];
             if (token == plan.token) {
-                lockedBalance += plan.amount;
+                lockedBalance = TFHE.add(plan.amount, lockedBalance);
             }
         }
     }
@@ -268,13 +269,13 @@ contract TokenVestingPlans is ERC721Delegate, VestingStorage, ReentrancyGuard, U
     /// by default all NFTs are self-delegated when they are minted.
     /// @param delegatee is the address of the delegate where NFTs have been delegated to
     /// @param token is the address of the ERC20 token that is locked in vesting plans and has been delegated
-    function delegatedBalances(address delegatee, address token) external view returns (uint256 delegatedBalance) {
+    function delegatedBalances(address delegatee, address token) external view returns (euint64 delegatedBalance) {
         uint256 delegateBalance = balanceOfDelegate(delegatee);
         for (uint256 i; i < delegateBalance; i++) {
             uint256 planId = tokenOfDelegateByIndex(delegatee, i);
             Plan memory plan = plans[planId];
             if (token == plan.token) {
-                delegatedBalance += plan.amount;
+                delegatedBalance  = TFHE.add(plan.amount, delegatedBalance);
             }
         }
     }

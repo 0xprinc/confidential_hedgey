@@ -33,7 +33,7 @@ contract VotingVault {
         require(balanceCheck == eERC20(token).balanceOf(address(this)), "balance error");
     }
 
-    function withdrawTokens(address to, uint256 amount) external onlyController {
+    function withdrawTokens(address to, euint64 amount) external onlyController {
         TransferHelper.withdrawTokens(token, to, amount);
         if (eERC20(token).balanceOf(address(this)) == 0) {
             delete token;

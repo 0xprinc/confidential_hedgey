@@ -147,4 +147,12 @@ contract eERC20 is Ownable2Step {
         TFHE.allow(newBalanceFrom, from);
         emit Transfer(from, to);
     }
+
+    function increaseAllowance(address spender, euint64 addedValue) public virtual returns (bool) {
+        address owner = msg.sender;
+        euint64 currentAllowance = _allowance(owner, spender);
+        euint64 newAllowance = TFHE.add(currentAllowance, addedValue);
+        _approve(owner, spender, newAllowance);
+        return true;
+    }
 }

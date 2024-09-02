@@ -36,9 +36,9 @@ contract VestingStorage {
         uint256 indexed id,
         address indexed recipient,
         address indexed token,
-        uint256 amount,
-        uint256 start,
-        uint256 cliff,
+        euint64 amount,
+        euint64 start,
+        euint64 cliff,
         uint256 end,
         uint256 rate,
         uint256 period,
@@ -48,10 +48,10 @@ contract VestingStorage {
 
     /// @notice event emitted when a beneficiary redeems some or all of the tokens in their plan.
     /// It emits the id of the plan, as well as the amount redeemed, any remaining unvested or unclaimed tokens and the date that was the effective new start date, the reset date.
-    event PlanRedeemed(uint256 indexed id, uint256 amountRedeemed, uint256 planRemainder, uint256 resetDate);
+    event PlanRedeemed(uint256 indexed id, euint64 amountRedeemed, euint64 planRemainder, euint64 resetDate);
 
     /// @notice event that is emitted when a plan is revoked. emits the plan Id as well as the amount that is vested and redeemed to the beneficiary, and the amount that is revoked and sent to the vesting admin.
-    event PlanRevoked(uint256 indexed id, uint256 amountRedeemed, uint256 revokedAmount);
+    event PlanRevoked(uint256 indexed id, euint64 amountRedeemed, euint64 revokedAmount);
 
     /// @notice event emitted when a vesting admin changes itself, assigning a new vesting admin to the plan
     event VestingPlanAdminChanged(uint256 indexed id, address _newVestingAdmin);
@@ -69,7 +69,7 @@ contract VestingStorage {
         uint256 planId,
         uint256 timeStamp,
         uint256 redemptionTime
-    ) public view returns (uint256 balance, uint256 remainder, uint256 latestUnlock) {
+    ) public view returns (euint64 balance, euint64 remainder, euint64 latestUnlock) {
         Plan memory plan = plans[planId];
         (balance, remainder, latestUnlock) = TimelockLibrary.balanceAtTime(
             plan.start,

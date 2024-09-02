@@ -36,9 +36,9 @@ contract LockupStorage {
         uint256 indexed id,
         address indexed recipient,
         address indexed token,
-        uint256 amount,
-        uint256 start,
-        uint256 cliff,
+        euint64 amount,
+        euint64 start,
+        euint64 cliff,
         uint256 end,
         uint256 rate,
         uint256 period
@@ -46,7 +46,7 @@ contract LockupStorage {
 
     /// @notice event emitted when a beneficiary redeems some or all of the tokens in their plan.
     /// It emits the id of the plan, as well as the amount redeemed, any remaining unvested or unclaimed tokens and the date that was the effective new start date, the reset date
-    event PlanRedeemed(uint256 indexed id, uint256 amountRedeemed, uint256 planRemainder, uint256 resetDate);
+    event PlanRedeemed(uint256 indexed id, euint64 amountRedeemed, euint64 planRemainder, euint64 resetDate);
 
     /// @notice this event is emitted when a plan owner segments a plan into a new plan. The event spits out all of the details that have changed for the original plan and the new segmented plan
     event PlanSegmented(

@@ -65,22 +65,25 @@ contract VotingTokenVestingPlans is PlanDelegator, VestingStorage, ReentrancyGua
         bool adminTransferOBO,
         bytes calldata inputProof
     ) external nonReentrant returns (uint256 newPlanId) {
+        euint64 amount_ = TFHE.asEuint64(amount, inputProof);
+        euint64 start_ = TFHE.asEuint64(start, inputProof);
+        euint64 cliff_ = TFHE.asEuint64(cliff, inputProof);
         require(recipient != address(0), "0_recipient");
         require(token != address(0), "0_token");
-        (uint256 end, bool valid) = TimelockLibrary.validateEnd(start, cliff, amount, rate, period);
+        (uint256 end, bool valid) = TimelockLibrary.validateEnd(start_, cliff_, amount_, rate, period);
         require(valid);
         _planIds.increment();
         newPlanId = _planIds.current();
-        TransferHelper.transferTokens(token, msg.sender, address(this), amount);
-        plans[newPlanId] = Plan(token, amount, start, cliff, rate, period, vestingAdmin, adminTransferOBO);
+        TransferHelper.transferTokens(token, msg.sender, address(this), amount_);
+        plans[newPlanId] = Plan(token, amount_, start_, cliff_, rate, period, vestingAdmin, adminTransferOBO);
         _safeMint(recipient, newPlanId);
         emit PlanCreated(
             newPlanId,
             recipient,
             token,
-            amount,
-            start,
-            cliff,
+            amount_,
+            start_,
+            cliff_,
             end,
             rate,
             period,
@@ -201,7 +204,7 @@ contract VotingTokenVestingPlans is PlanDelegator, VestingStorage, ReentrancyGua
     /// @param redemptionTime is the requested redemption time, either the current block.timestamp or a timestamp from the past, but must be greater than the start date
     function _redeemPlans(uint256[] memory planIds, uint256 redemptionTime) internal {
         for (uint256 i; i < planIds.length; i++) {
-            (uint256 balance, uint256 remainder, uint256 latestUnlock) = planBalanceOf(
+            (euint64 balance, euint64 remainder, euint64 latestUnlock) = planBalanceOf(
                 planIds[i],
                 block.timestamp,
                 redemptionTime
@@ -219,7 +222,7 @@ contract VotingTokenVestingPlans is PlanDelegator, VestingStorage, ReentrancyGua
     /// @param balance is the available redeemable balance
     /// @param remainder is the amount of tokens that are still unvested in the plan, and will be the new amount in the plan storage
     /// @param latestUnlock is the most recent timestamp for when redemption occured. Because periods may be longer than 1 second, the latestUnlock time may be the current block time, or the timestamp of the most recent period timestamp
-    function _redeemPlan(uint256 planId, uint256 balance, uint256 remainder, uint256 latestUnlock) internal {
+    function _redeemPlan(uint256 planId, euint64 balance, euint64 remainder, euint64 latestUnlock) internal {
         require(ownerOf(planId) == msg.sender, "!owner");
         address token = plans[planId].token;
         address vault = votingVaults[planId];
@@ -254,7 +257,7 @@ contract VotingTokenVestingPlans is PlanDelegator, VestingStorage, ReentrancyGua
     function _revokePlan(uint256 planId, uint256 revokeTime) internal {
         Plan memory plan = plans[planId];
         require(msg.sender == plan.vestingAdmin, "!vestingAdmin");
-        (uint256 balance, uint256 remainder, ) = planBalanceOf(planId, block.timestamp, revokeTime);
+        (euint64 balance, euint64 remainder, ) = planBalanceOf(planId, block.timestamp, revokeTime);
         require(remainder > 0, "!Remainder");
         address vault = votingVaults[planId];
         if (balance == 0) {

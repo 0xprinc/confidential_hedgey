@@ -10,6 +10,8 @@ import "../libraries/TimelockLibrary.sol";
 import "../sharedContracts/VotingVault.sol";
 import "../sharedContracts/URIAdmin.sol";
 import "../sharedContracts/LockupStorage.sol";
+import "fhevm/lib/TFHE.sol";
+
 
 /// @title TokenLockupPlans - An efficient way to allocate tokens to beneficiaries that unlock over time
 /// @notice This contract allows people to grant tokens to beneficiaries that unlock over time with the added functionalities;
@@ -483,13 +485,13 @@ contract VotingTokenLockupPlans is PlanDelegator, LockupStorage, ReentrancyGuard
     /// very useful for snapshot voting, and other view functionalities. This aggregates all balances, including any in voting vaults.
     /// @param holder is the address of the beneficiary who owns the lockup plan(s)
     /// @param token is the ERC20 address of the token that is stored across the lockup plans
-    function lockedBalances(address holder, address token) external view returns (uint256 lockedBalance) {
+    function lockedBalances(address holder, address token) external view returns (euint64 lockedBalance) {
         uint256 holdersBalance = balanceOf(holder);
         for (uint256 i; i < holdersBalance; i++) {
             uint256 planId = tokenOfOwnerByIndex(holder, i);
             Plan memory plan = plans[planId];
             if (token == plan.token) {
-                lockedBalance += plan.amount;
+                lockedBalance = TFHE.add(plan.amount, lockedBalance);
             }
         }
     }

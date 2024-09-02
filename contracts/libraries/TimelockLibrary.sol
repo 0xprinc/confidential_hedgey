@@ -39,7 +39,8 @@ library TimelockLibrary {
         // end = (amount % rate == 0) ? (amount / rate) * period + start : ((amount / rate) * period) + period + start;
         end = endDate(start, amount, rate, period);
         // require(cliff <= end, "cliff > end");
-        valid = TFHE.select(TFHE.and(all, TFHE.le(cliff, end)), TFHE.asEbool(false), TFHE.asEbool(true));
+        euint64 num = TFHE.select(TFHE.and(all, TFHE.le(cliff, end)), TFHE.asEuint64(0), TFHE.asEuint64(1));
+        valid = TFHE.eq(num, TFHE.asEuint64(0));
     }
 
     /// @notice function to calculate the unlocked (claimable) balance, still locked balance, and the most recent timestamp the unlock would take place
