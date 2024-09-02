@@ -47,22 +47,26 @@ contract TokenLockupPlans is ERC721Delegate, LockupStorage, ReentrancyGuard, URI
     function createPlan(
         address recipient,
         address token,
-        uint256 amount,
-        uint256 start,
-        uint256 cliff,
+        einput amount,
+        einput start,
+        einput cliff,
         uint256 rate,
-        uint256 period
+        uint256 period,
+        bytes calldata inputProof
     ) external nonReentrant returns (uint256 newPlanId) {
+        euint64 amount_ = TFHE.asEuint64(amount, inputProof);
+        euint64 start_ = TFHE.asEuint64(start, inputProof);
+        euint64 cliff_ = TFHE.asEuint64(cliff, inputProof);
         require(recipient != address(0), "0_recipient");
         require(token != address(0), "0_token");
-        (uint256 end, bool valid) = TimelockLibrary.validateEnd(start, cliff, amount, rate, period);
+        (uint256 end, bool valid) = TimelockLibrary.validateEnd(start_, cliff_, amount_, rate, period);
         require(valid);
         _planIds.increment();
         newPlanId = _planIds.current();
-        TransferHelper.transferTokens(token, msg.sender, address(this), amount);
-        plans[newPlanId] = Plan(token, amount, start, cliff, rate, period);
+        TransferHelper.transferTokens(token, msg.sender, address(this), amount_);
+        plans[newPlanId] = Plan(token, amount_, start_, cliff_, rate, period);
         _safeMint(recipient, newPlanId);
-        emit PlanCreated(newPlanId, recipient, token, amount, start, cliff, end, rate, period);
+        emit PlanCreated(newPlanId, recipient, token, amount_, start_, cliff_, end, rate, period);
     }
 
     /// @notice function for a beneficiary to redeem unlocked tokens from a group of plans

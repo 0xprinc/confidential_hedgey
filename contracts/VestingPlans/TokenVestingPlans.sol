@@ -48,30 +48,34 @@ contract TokenVestingPlans is ERC721Delegate, VestingStorage, ReentrancyGuard, U
     function createPlan(
         address recipient,
         address token,
-        uint256 amount,
-        uint256 start,
-        uint256 cliff,
+        einput amount,
+        einput start,
+        einput cliff,
         uint256 rate,
         uint256 period,
         address vestingAdmin,
-        bool adminTransferOBO
+        bool adminTransferOBO,
+        bytes calldata inputProof
     ) external nonReentrant returns (uint256 newPlanId) {
+        euint64 amount_ = TFHE.asEuint64(amount, inputProof);
+        euint64 start_ = TFHE.asEuint64(start_, inputProof);
+        euint64 cliff_ = TFHE.asEuint64(cliff_, inputProof);
         require(recipient != address(0), "0_recipient");
         require(token != address(0), "0_token");
-        (uint256 end, bool valid) = TimelockLibrary.validateEnd(start, cliff, amount, rate, period);
+        (uint256 end, bool valid) = TimelockLibrary.validateEnd(start_, cliff_, amount_, rate, period);
         require(valid);
         _planIds.increment();
         newPlanId = _planIds.current();
-        TransferHelper.transferTokens(token, msg.sender, address(this), amount);
-        plans[newPlanId] = Plan(token, amount, start, cliff, rate, period, vestingAdmin, adminTransferOBO);
+        TransferHelper.transferTokens(token, msg.sender, address(this), amount_);
+        plans[newPlanId] = Plan(token, amount_, start_, cliff_, rate, period, vestingAdmin, adminTransferOBO);
         _safeMint(recipient, newPlanId);
         emit PlanCreated(
             newPlanId,
             recipient,
             token,
-            amount,
-            start,
-            cliff,
+            amount_,
+            start_,
+            cliff_,
             end,
             rate,
             period,
@@ -130,7 +134,7 @@ contract TokenVestingPlans is ERC721Delegate, VestingStorage, ReentrancyGuard, U
         }
     }
 
-    /// @notice the function for a vestingAdmin to assing a new vestingAdmin wallet for a specific plan. Used in emergencies where DAOs are changing multi-sigs or other events
+    /// @notice the function for a vestingAdmin to asking a new vestingAdmin wallet for a specific plan. Used in emergencies where DAOs are changing multi-sigs or other events
     /// @dev the new vesting admin address cannot be the beneficiary of the plan
     /// @param planId is the NFT token id of the plan
     /// @param newVestingAdmin is the address which the vesting admin of the plan will be assigned
