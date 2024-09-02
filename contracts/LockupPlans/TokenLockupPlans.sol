@@ -110,7 +110,8 @@ contract TokenLockupPlans is ERC721Delegate, LockupStorage, ReentrancyGuard, URI
     /// @param segmentAmounts is the array of amounts of each individual segment, which must each be smaller than the plan when it is being segmented.
     function segmentPlan(
         uint256 planId,
-        uint256[] memory segmentAmounts
+        einput[] memory segmentAmounts,
+        bytes calldata inputProof
     ) external nonReentrant returns (uint256[] memory newPlanIds) {
         newPlanIds = new uint256[](segmentAmounts.length);
         for (uint256 i; i < segmentAmounts.length; i++) {
@@ -126,8 +127,9 @@ contract TokenLockupPlans is ERC721Delegate, LockupStorage, ReentrancyGuard, URI
     /// @param delegatees is the array of delegatees that each new segment will be delegated to
     function segmentAndDelegatePlans(
         uint256 planId,
-        uint256[] memory segmentAmounts,
-        address[] memory delegatees
+        eiuput[] memory segmentAmounts,
+        address[] memory delegatees,
+        bytes calldata inputProof
     ) external nonReentrant returns (uint256[] memory newPlanIds) {
         require(segmentAmounts.length == delegatees.length, "length_error");
         newPlanIds = new uint256[](segmentAmounts.length);
@@ -242,11 +244,11 @@ contract TokenLockupPlans is ERC721Delegate, LockupStorage, ReentrancyGuard, URI
     /// and the storage of the original plan amount and rate is updated with the newplan amount and rate.
     /// @param planId is the id of the lockup plan
     /// @param segmentAmount is the amount of tokens to be segmented off from the original plan and created into a new segment plan
-    function _segmentPlan(uint256 planId, uint256 segmentAmount) internal returns (uint256 newPlanId) {
+    function _segmentPlan(uint256 planId, euint64 segmentAmount) internal returns (uint256 newPlanId) {
         require(ownerOf(planId) == msg.sender, "!owner");
         Plan memory plan = plans[planId];
         require(segmentAmount < plan.amount, "amount error");
-        require(segmentAmount > 0, "0_segment");
+    require(segmentAmount > 0, "0_segment");
         euint64 end = TimelockLibrary.endDate(plan.start, plan.amount, plan.rate, plan.period);
         _planIds.increment();
         newPlanId = _planIds.current();
