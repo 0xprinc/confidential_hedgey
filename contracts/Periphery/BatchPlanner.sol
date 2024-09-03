@@ -37,18 +37,21 @@ contract BatchPlanner {
     function batchLockingPlans(
         address locker,
         address token,
-        uint256 totalAmount,
+        euint64 totalAmount,
         Plan[] calldata plans,
         uint256 period,
-        uint8 mintType
+        uint8 mintType,
+        bytes calldata inputProof
     ) external {
+       
         require(totalAmount > 0, "0_totalAmount");
         require(locker != address(0), "0_locker");
         require(token != address(0), "0_token");
         require(plans.length > 0, "no plans");
         TransferHelper.transferTokens(token, msg.sender, address(this), totalAmount);
         eERC20(token).increaseAllowance(locker, totalAmount);
-        uint256 amountCheck;
+        euint64 amountCheck = TFHE.asEuint64(0);
+
         for (uint16 i; i < plans.length; i++) {
             ILockupPlans(locker).createPlan(
                 plans[i].recipient,
@@ -59,9 +62,9 @@ contract BatchPlanner {
                 plans[i].rate,
                 period
             );
-            amountCheck += plans[i].amount;
+            amountCheck = TFHE.add(amountCheck,plans[i].amount);
         }
-        require(amountCheck == totalAmount, "totalAmount error");
+        require(amountCheck== totalAmount, "totalAmount error");
         emit BatchCreated(msg.sender, token, plans.length, totalAmount, mintType);
     }
 
@@ -78,7 +81,7 @@ contract BatchPlanner {
     function batchVestingPlans(
         address locker,
         address token,
-        uint256 totalAmount,
+        euint64 totalAmount,
         Plan[] calldata plans,
         uint256 period,
         address vestingAdmin,
@@ -91,7 +94,7 @@ contract BatchPlanner {
         require(plans.length > 0, "no plans");
         TransferHelper.transferTokens(token, msg.sender, address(this), totalAmount);
         eERC20(token).increaseAllowance(locker, totalAmount);
-        uint256 amountCheck;
+        euint64 amountCheck = TFHE.asEuint64(0);
         for (uint16 i; i < plans.length; i++) {
             IVestingPlans(locker).createPlan(
                 plans[i].recipient,
@@ -104,7 +107,7 @@ contract BatchPlanner {
                 vestingAdmin,
                 adminTransferOBO
             );
-            amountCheck += plans[i].amount;
+            amountCheck = TFHE.add(amountCheck,plans[i].amount);
         }
         require(amountCheck == totalAmount, "totalAmount error");
         emit BatchCreated(msg.sender, token, plans.length, totalAmount, mintType);

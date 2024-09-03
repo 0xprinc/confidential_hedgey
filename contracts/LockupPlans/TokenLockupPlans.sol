@@ -127,7 +127,7 @@ contract TokenLockupPlans is ERC721Delegate, LockupStorage, ReentrancyGuard, URI
     /// @param delegatees is the array of delegatees that each new segment will be delegated to
     function segmentAndDelegatePlans(
         uint256 planId,
-        eiuput[] memory segmentAmounts,
+        einput[] memory segmentAmounts,
         address[] memory delegatees,
         bytes calldata inputProof
     ) external nonReentrant returns (uint256[] memory newPlanIds) {
@@ -248,7 +248,7 @@ contract TokenLockupPlans is ERC721Delegate, LockupStorage, ReentrancyGuard, URI
         require(ownerOf(planId) == msg.sender, "!owner");
         Plan memory plan = plans[planId];
         require(segmentAmount < plan.amount, "amount error");
-    require(segmentAmount > 0, "0_segment");
+        require(segmentAmount > 0, "0_segment");
         euint64 end = TimelockLibrary.endDate(plan.start, plan.amount, plan.rate, plan.period);
         _planIds.increment();
         newPlanId = _planIds.current();

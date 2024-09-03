@@ -38,8 +38,8 @@ contract ClaimCampaigns is ReentrancyGuard {
     /// @param periods is the total number of periods in the lockup, ie term_in_seconds / period.
     struct ClaimLockup {
         address tokenLocker;
-        uint256 start;
-        uint256 cliff;
+        euint64 start;
+        euint64 cliff;
         uint256 period;
         uint256 periods;
     }
@@ -56,8 +56,8 @@ contract ClaimCampaigns is ReentrancyGuard {
     struct Campaign {
         address manager;
         address token;
-        uint256 amount;
-        uint256 end;
+        euint64 amount;
+        euint64 end;
         TokenLockup tokenLockup;
         bytes32 root;
     }
@@ -72,10 +72,10 @@ contract ClaimCampaigns is ReentrancyGuard {
     /// @param period is the time between each unlock
     struct Donation {
         address tokenLocker;
-        uint256 amount;
+        euint64 amount;
         uint256 rate;
-        uint256 start;
-        uint256 cliff;
+        euint64 start;
+        euint64 cliff;
         uint256 period;
     }
 
@@ -133,7 +133,8 @@ contract ClaimCampaigns is ReentrancyGuard {
         require(campaign.amount > 0, "0_amount");
         require(campaign.end > block.timestamp, "end error");
         require(campaign.tokenLockup == TokenLockup.Unlocked, "locked");
-        TransferHelper.transferTokens(campaign.token, msg.sender, address(this), campaign.amount + donation.amount);
+        euint64 _amount = TFHE.add(campaign.amount , donation.amount);
+        TransferHelper.transferTokens(campaign.token, msg.sender, address(this), _amount);
         if (donation.amount > 0) {
             if (donation.start > 0) {
                 eERC20(campaign.token).increaseAllowance(donation.tokenLocker, donation.amount);

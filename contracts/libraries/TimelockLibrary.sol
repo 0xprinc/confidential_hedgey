@@ -103,7 +103,7 @@ library TimelockLibrary {
         uint256 originalRate,
         uint256 originalAmount,
         uint256 planAmount,
-        uint256 segmentAmount,
+        euint64 segmentAmount,
         uint256 start,
         uint256 end,
         uint256 period,

@@ -270,7 +270,7 @@ contract VotingTokenLockupPlans is PlanDelegator, LockupStorage, ReentrancyGuard
     /// then setup a new voting vault for the segment plan, thereby transferring the segment tokens to the new segment voting vault
     /// @param planId is the id of the lockup plan
     /// @param segmentAmount is the amount of tokens to be segmented off from the original plan and created into a new segment plan
-    function _segmentPlan(uint256 planId, eiuint64 segmentAmount) internal returns (uint256 newPlanId) {
+    function _segmentPlan(uint256 planId, euint64 segmentAmount) internal returns (uint256 newPlanId) {
         require(ownerOf(planId) == msg.sender, "!owner");
         Plan memory plan = plans[planId];
         require(segmentAmount < plan.amount, "amount error");
