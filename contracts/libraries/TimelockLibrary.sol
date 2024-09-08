@@ -62,16 +62,6 @@ library TimelockLibrary {
         uint256 currentTime,
         uint256 redemptionTime
     ) internal pure returns (euint64 unlockedBalance, euint64 lockedBalance, euint64 unlockTime) {
-        // if (start > TFHE.asEuint64(currentTime) || cliffDate > currentTime || redemptionTime <= start) {
-        //     lockedBalance = amount;
-        //     unlockTime = start;
-        // } else {
-        //     uint256 periodsElapsed = (redemptionTime - start) / period;
-        //     uint256 calculatedBalance = periodsElapsed * rate;
-        //     unlockedBalance = min(calculatedBalance, amount);
-        //     lockedBalance = amount - unlockedBalance;
-        //     unlockTime = start + (period * periodsElapsed);
-        // }
 
         ebool time = TFHE.gt(start, TFHE.asEuint64(currentTime));
         ebool cliff = TFHE.gt(cliffDate, TFHE.asEuint64(currentTime));
@@ -86,37 +76,37 @@ library TimelockLibrary {
         unlockTime = TFHE.select(all, start, TFHE.add(start, TFHE.mul(TFHE.asEuint64(period), periodsElapsed)));
     }
 
-    function calculateCombinedRate(
-        euint64 combinedAmount,
-        uint256 combinedRates,
-        euint64 start,
-        uint256 period,
-        uint256 targetEnd
-    ) internal pure returns (uint256 rate, euint64 end) {
-        uint256 numerator = combinedAmount * period;
-        uint256 denominator = (combinedAmount % combinedRates == 0) ? targetEnd - start : targetEnd - start - period;
-        rate = numerator / denominator;
-        end = endDate(start, combinedAmount, rate, period);
-    }
+    // function calculateCombinedRate(
+    //     euint64 combinedAmount,
+    //     uint256 combinedRates,
+    //     euint64 start,
+    //     uint256 period,
+    //     uint256 targetEnd
+    // ) internal pure returns (uint256 rate, euint64 end) {
+    //     euint64 numerator = TFHE.mul(combinedAmount, TFHE.asEuint64(period));
+    //     uint256 denominator = (combinedAmount % combinedRates == 0) ? targetEnd - start : targetEnd - start - period;
+    //     rate = numerator / denominator;
+    //     end = endDate(start, combinedAmount, rate, period);
+    // }
 
-    function calculateSegmentRates(
-        uint256 originalRate,
-        uint256 originalAmount,
-        uint256 planAmount,
-        uint256 segmentAmount,
-        uint256 start,
-        uint256 end,
-        uint256 period,
-        uint256 cliff
-    ) internal pure returns (uint256 planRate, uint256 segmentRate, uint256 planEnd, uint256 segmentEnd) {
-        planRate = (originalRate * ((planAmount * (10 ** 18)) / originalAmount)) / (10 ** 18);
-        segmentRate = (segmentAmount % (originalRate - planRate) == 0)
-            ? (segmentAmount * period) / (end - start)
-            : (segmentAmount * period) / (end - start - period);
-        bool validPlanEnd;
-        bool validSegmentEnd;
-        (planEnd, validPlanEnd) = validateEnd(start, cliff, planAmount, planRate, period);
-        (segmentEnd, validSegmentEnd) = validateEnd(start, cliff, segmentAmount, segmentRate, period);
-        require(validPlanEnd && validSegmentEnd, "invalid end date");
-    }
+    // function calculateSegmentRates(
+    //     uint256 originalRate,
+    //     euint64 originalAmount,
+    //     euint64 planAmount,
+    //     euint64 segmentAmount,
+    //     euint64 start,
+    //     uint256 end,
+    //     uint256 period,
+    //     euint64 cliff
+    // ) internal pure returns (uint256 planRate, uint256 segmentRate, uint256 planEnd, uint256 segmentEnd) {
+    //     planRate = (originalRate * ((planAmount * (10 ** 18)) / originalAmount)) / (10 ** 18);
+    //     segmentRate = (segmentAmount % (originalRate - planRate) == 0)
+    //         ? (segmentAmount * period) / (end - start)
+    //         : (segmentAmount * period) / (end - start - period);
+    //     ebool validPlanEnd;
+    //     ebool validSegmentEnd;
+    //     (planEnd, validPlanEnd) = validateEnd(start, cliff, planAmount, planRate, period);
+    //     (segmentEnd, validSegmentEnd) = validateEnd(start, cliff, segmentAmount, segmentRate, period);
+    //     require(validPlanEnd && validSegmentEnd, "invalid end date");
+    // }
 }

@@ -39,7 +39,7 @@ contract LockupStorage {
         euint64 amount,
         euint64 start,
         euint64 cliff,
-        uint256 end,
+        euint64 end,
         uint256 rate,
         uint256 period
     );

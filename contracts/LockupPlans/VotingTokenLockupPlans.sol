@@ -119,17 +119,17 @@ contract VotingTokenLockupPlans is PlanDelegator, LockupStorage, ReentrancyGuard
     /// @dev Segmenting plans where the segment amount is not divisible by the rate will result in a new End date that is 1 period farther than the original plan
     /// @param planId is the plan that is going to be segmented
     /// @param segmentAmounts is the array of amounts of each individual segment, which must each be smaller than the plan when it is being segmented.
-    function segmentPlan(
-        uint256 planId,
-        einput[] memory segmentAmounts,
-        bytes calldata inputProof
-    ) external nonReentrant returns (uint256[] memory newPlanIds) {
-        newPlanIds = new uint256[](segmentAmounts.length);
-        for (uint256 i; i < segmentAmounts.length; i++) {
-            uint256 newPlanId = _segmentPlan(planId, segmentAmounts[i]);
-            newPlanIds[i] = newPlanId;
-        }
-    }
+    // function segmentPlan(
+    //     uint256 planId,
+    //     einput[] memory segmentAmounts,
+    //     bytes calldata inputProof
+    // ) external nonReentrant returns (uint256[] memory newPlanIds) {
+    //     newPlanIds = new uint256[](segmentAmounts.length);
+    //     for (uint256 i; i < segmentAmounts.length; i++) {
+    //         uint256 newPlanId = _segmentPlan(planId, segmentAmounts[i]);
+    //         newPlanIds[i] = newPlanId;
+    //     }
+    // }
 
     /// @notice this function combines the functionality of segmenting plans and then immediately delegating the new semgent plans to a delegate address
     /// @dev this function does NOT delegate the original planId at all, it will only delegate the newly create segments
@@ -137,20 +137,20 @@ contract VotingTokenLockupPlans is PlanDelegator, LockupStorage, ReentrancyGuard
     /// @param planId is the plan that will be segmented (and not delegated)
     /// @param segmentAmounts is the array of each segment amount
     /// @param delegatees is the array of delegatees that each new segment will be delegated to
-    function segmentAndDelegatePlans(
-        uint256 planId,
-        einput[] memory segmentAmounts,
-        address[] memory delegatees,
-        bytes calldata inputProof
-    ) external nonReentrant returns (uint256[] memory newPlanIds) {
-        require(segmentAmounts.length == delegatees.length, "!length");
-        newPlanIds = new uint256[](segmentAmounts.length);
-        for (uint256 i; i < segmentAmounts.length; i++) {
-            uint256 newPlanId = _segmentPlan(planId, segmentAmounts[i]);
-            _delegate(newPlanId, delegatees[i]);
-            newPlanIds[i] = newPlanId;
-        }
-    }
+    // function segmentAndDelegatePlans(
+    //     uint256 planId,
+    //     einput[] memory segmentAmounts,
+    //     address[] memory delegatees,
+    //     bytes calldata inputProof
+    // ) external nonReentrant returns (uint256[] memory newPlanIds) {
+    //     require(segmentAmounts.length == delegatees.length, "!length");
+    //     newPlanIds = new uint256[](segmentAmounts.length);
+    //     for (uint256 i; i < segmentAmounts.length; i++) {
+    //         uint256 newPlanId = _segmentPlan(planId, segmentAmounts[i]);
+    //         _delegate(newPlanId, delegatees[i]);
+    //         newPlanIds[i] = newPlanId;
+    //     }
+    // }
 
     /// @notice this function allows a beneficiary of two plans that share the same details to combine them into a single surviving plan
     /// @dev the plans must have the same details except the amount and rate, but must share the same end date to be combined
@@ -270,57 +270,57 @@ contract VotingTokenLockupPlans is PlanDelegator, LockupStorage, ReentrancyGuard
     /// then setup a new voting vault for the segment plan, thereby transferring the segment tokens to the new segment voting vault
     /// @param planId is the id of the lockup plan
     /// @param segmentAmount is the amount of tokens to be segmented off from the original plan and created into a new segment plan
-    function _segmentPlan(uint256 planId, eiuint64 segmentAmount) internal returns (uint256 newPlanId) {
-        require(ownerOf(planId) == msg.sender, "!owner");
-        Plan memory plan = plans[planId];
-        require(segmentAmount < plan.amount, "amount error");
-        require(segmentAmount > 0, "0_segment");
-        euint64 end = TimelockLibrary.endDate(plan.start, plan.amount, plan.rate, plan.period);
-        _planIds.increment();
-        newPlanId = _planIds.current();
-        uint256 planAmount = plan.amount - segmentAmount;
-        (uint256 planRate, uint256 segmentRate, uint256 planEnd, uint256 segmentEnd) = TimelockLibrary
-            .calculateSegmentRates(
-                plan.rate,
-                plan.amount,
-                planAmount,
-                segmentAmount,
-                plan.start,
-                end,
-                plan.period,
-                plan.cliff
-            );
-        uint256 endCheck = segmentOriginalEnd[planId] == 0 ? end : segmentOriginalEnd[planId];
-        require(planEnd >= endCheck, "plan end error");
-        require(segmentEnd >= endCheck, "segmentEnd error");
-        plans[planId].amount = planAmount;
-        plans[planId].rate = planRate;
-        _safeMint(msg.sender, newPlanId);
-        plans[newPlanId] = Plan(plan.token, segmentAmount, plan.start, plan.cliff, segmentRate, plan.period);
-        if (segmentOriginalEnd[planId] == 0) {
-            segmentOriginalEnd[planId] = end;
-            segmentOriginalEnd[newPlanId] = end;
-        } else {
-            segmentOriginalEnd[newPlanId] = segmentOriginalEnd[planId];
-        }
-        if (votingVaults[planId] != address(0)) {
-            VotingVault(votingVaults[planId]).withdrawTokens(address(this), segmentAmount);
-            _setupVoting(newPlanId);
-        }
-        emit PlanSegmented(
-            planId,
-            newPlanId,
-            planAmount,
-            planRate,
-            segmentAmount,
-            segmentRate,
-            plan.start,
-            plan.cliff,
-            plan.period,
-            planEnd,
-            segmentEnd
-        );
-    }
+    // function _segmentPlan(uint256 planId, euint64 segmentAmount) internal returns (uint256 newPlanId) {
+    //     require(ownerOf(planId) == msg.sender, "!owner");
+    //     Plan memory plan = plans[planId];
+    //     require(segmentAmount < plan.amount, "amount error");
+    //     require(segmentAmount > 0, "0_segment");
+    //     euint64 end = TimelockLibrary.endDate(plan.start, plan.amount, plan.rate, plan.period);
+    //     _planIds.increment();
+    //     newPlanId = _planIds.current();
+    //     uint256 planAmount = plan.amount - segmentAmount;
+    //     (uint256 planRate, uint256 segmentRate, uint256 planEnd, uint256 segmentEnd) = TimelockLibrary
+    //         .calculateSegmentRates(
+    //             plan.rate,
+    //             plan.amount,
+    //             planAmount,
+    //             segmentAmount,
+    //             plan.start,
+    //             end,
+    //             plan.period,
+    //             plan.cliff
+    //         );
+    //     uint256 endCheck = segmentOriginalEnd[planId] == 0 ? end : segmentOriginalEnd[planId];
+    //     require(planEnd >= endCheck, "plan end error");
+    //     require(segmentEnd >= endCheck, "segmentEnd error");
+    //     plans[planId].amount = planAmount;
+    //     plans[planId].rate = planRate;
+    //     _safeMint(msg.sender, newPlanId);
+    //     plans[newPlanId] = Plan(plan.token, segmentAmount, plan.start, plan.cliff, segmentRate, plan.period);
+    //     if (segmentOriginalEnd[planId] == 0) {
+    //         segmentOriginalEnd[planId] = end;
+    //         segmentOriginalEnd[newPlanId] = end;
+    //     } else {
+    //         segmentOriginalEnd[newPlanId] = segmentOriginalEnd[planId];
+    //     }
+    //     if (votingVaults[planId] != address(0)) {
+    //         VotingVault(votingVaults[planId]).withdrawTokens(address(this), segmentAmount);
+    //         _setupVoting(newPlanId);
+    //     }
+    //     emit PlanSegmented(
+    //         planId,
+    //         newPlanId,
+    //         planAmount,
+    //         planRate,
+    //         segmentAmount,
+    //         segmentRate,
+    //         plan.start,
+    //         plan.cliff,
+    //         plan.period,
+    //         planEnd,
+    //         segmentEnd
+    //     );
+    // }
 
     /// @notice this funtion allows the holder of two plans that have the same parameters to combine them into a single surviving plan
     /// @dev all of the details of the plans must be the same except the amounts and rates may be different

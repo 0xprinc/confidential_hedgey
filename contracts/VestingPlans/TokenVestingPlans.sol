@@ -58,11 +58,11 @@ contract TokenVestingPlans is ERC721Delegate, VestingStorage, ReentrancyGuard, U
         bytes calldata inputProof
     ) external nonReentrant returns (uint256 newPlanId) {
         euint64 amount_ = TFHE.asEuint64(amount, inputProof);
-        euint64 start_ = TFHE.asEuint64(start_, inputProof);
-        euint64 cliff_ = TFHE.asEuint64(cliff_, inputProof);
+        euint64 start_ = TFHE.asEuint64(start, inputProof);
+        euint64 cliff_ = TFHE.asEuint64(cliff, inputProof);
         require(recipient != address(0), "0_recipient");
         require(token != address(0), "0_token");
-        (uint256 end, bool valid) = TimelockLibrary.validateEnd(start_, cliff_, amount_, rate, period);
+        (euint64 end, ebool valid) = TimelockLibrary.validateEnd(start_, cliff_, amount_, rate, period);
         require(valid);
         _planIds.increment();
         newPlanId = _planIds.current();
